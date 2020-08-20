@@ -171,7 +171,7 @@ version-parse-pre-release() {
 
 version-get() {
     local sort_args version version_pre_releases pre_release_id_count pre_release_id_index
-    local tags=$(git tag)
+    local tags=$(git tag $TAG_LIST_OPT)
     local version_pre_release=$(
         local version_main=$(
             echo "$tags" |
@@ -363,6 +363,11 @@ fi
 
 GIT_HASH="$(git rev-parse HEAD 2> /dev/null)"
 GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2> /dev/null)"
+
+if [ $GIT_BRANCH != master ]; then
+  TAG_LIST_OPT="--merged $GIT_BRANCH"
+fi
+echo "Using git tag with '$TAG_LIST_OPT'"
 
 # Parse args
 action=
