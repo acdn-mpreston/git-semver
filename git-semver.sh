@@ -246,8 +246,6 @@ if [ $GIT_BRANCH != master ]; then
   TAG_LIST_OPT="--merged $GIT_BRANCH"
 fi
 
-echo "Using git tag with \"$TAG_LIST_OPT\""
-
 # Set $1 to last argument.
 for _; do true; done
 
