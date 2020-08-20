@@ -142,7 +142,7 @@ version-parse-patch() {
 
 version-get() {
     # shellcheck disable=SC2155
-    local version=$(git tag | grep "^${VERSION_PREFIX}[0-9]\+\.[0-9]\+\.[0-9]\+$" | sed "s/^${VERSION_PREFIX}//" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+    local version=$(git tag $TAG_LIST_OPT| grep "^${VERSION_PREFIX}[0-9]\+\.[0-9]\+\.[0-9]\+$" | sed "s/^${VERSION_PREFIX}//" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
     if [ "" == "${version}" ]
     then
         return 1
@@ -241,6 +241,12 @@ DIR_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
 GIT_HASH="$(git rev-parse HEAD 2> /dev/null)"
 GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2> /dev/null)"
+
+if [ $GIT_BRANCH != master ]; then
+  TAG_LIST_OPT="--merged $GIT_BRANCH"
+fi
+
+echo "Using git tag with \"$TAG_LIST_OPT\""
 
 # Set $1 to last argument.
 for _; do true; done
