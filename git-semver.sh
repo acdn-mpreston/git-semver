@@ -5,7 +5,7 @@
 
 usage() {
 	cat <<-EOF
-		Usage: $(basename-git "$0") [command]
+		Usage: $(basename-git "$0") [command] [dryrun]
 
 		This script automates semantic versioning. Requires a valid change log at CHANGELOG.md.
 
@@ -17,6 +17,8 @@ usage() {
 		 minor      Generates a tag for the next minor version and echos it to the screen
 		 patch|next Generates a tag for the next patch version and echos it to the screen
 		 help       This message
+
+		 dryrun     only returns next version. Don't actually tag the repository
 
 	EOF
 	exit
@@ -142,7 +144,17 @@ version-parse-patch() {
 
 version-get() {
     # shellcheck disable=SC2155
-    local version=$(git tag $TAG_LIST_OPT| grep "^${VERSION_PREFIX}[0-9]\+\.[0-9]\+\.[0-9]\+$" | sed "s/^${VERSION_PREFIX}//" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+	local version=""
+
+	if [[ $GIT_BRANCH = "release/"* ]]; then
+		if [[ ! -f current-version ]]; then
+			echo "Cannot find current-version at the root of this repository. Please create a file with the proper semver version and re-execute this command"
+			exit -1
+		fi
+      local version=$(cat current-version | grep "^${VERSION_PREFIX}[0-9]\+\.[0-9]\+\.[0-9]\+$" | sed "s/^${VERSION_PREFIX}//" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+    else
+      local version=$(git tag $TAG_LIST_OPT| grep "^${VERSION_PREFIX}[0-9]\+\.[0-9]\+\.[0-9]\+$" | sed "s/^${VERSION_PREFIX}//" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+	fi
     if [ "" == "${version}" ]
     then
         return 1
@@ -202,6 +214,10 @@ version-patch() {
 version-do() {
     local new="$1"
     local version="$2"
+	if [[ $DRY_RUN == "true" ]]; then
+		echo $new
+		return 1
+	fi
     local sign="${GIT_SIGN:-0}"
     local cmd="git tag"
     if [ "$sign" == "1" ]
@@ -246,6 +262,11 @@ if [ $GIT_BRANCH != master ]; then
   TAG_LIST_OPT="--merged $GIT_BRANCH"
 fi
 
+DRY_RUN=""
+if [[ $2 == "dryrun" ]]; then
+	DRY_RUN=true
+fi
+
 # Set $1 to last argument.
 for _; do true; done
 
@@ -272,3 +293,5 @@ case "$1" in
         usage
         ;;
 esac
+
+
