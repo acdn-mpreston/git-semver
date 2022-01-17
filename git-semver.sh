@@ -367,7 +367,6 @@ GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2> /dev/null)"
 if [ $GIT_BRANCH != master ]; then
   TAG_LIST_OPT="--merged $GIT_BRANCH"
 fi
-echo "Using git tag with '$TAG_LIST_OPT'"
 
 # Parse args
 action=
